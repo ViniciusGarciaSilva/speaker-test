@@ -1,0 +1,27 @@
+{
+  "name": "speaker-test",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon ./src/server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ViniciusGarciaSilva/speaker-test.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ViniciusGarciaSilva/speaker-test/issues"
+  },
+  "homepage": "https://github.com/ViniciusGarciaSilva/speaker-test#readme",
+  "description": "",
+  "dependencies": {
+    "@google-cloud/speech": "^3.0.0",
+    "body-parser": "^1.19.0",
+    "cors": "^2.8.5",
+    "dialogflow": "^0.9.1",
+    "express": "^4.17.0"
+  }
+}
