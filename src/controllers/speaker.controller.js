@@ -1,22 +1,30 @@
 const speakerData = require('../dao/speaker.data');
 
+// Recebe um arquivo de audio em base 64
 exports.get = async function(req, res, next) {
-  const fileName = 'resources/eai_tv_liga_ai_kevin.wav';
-  const fs = require('fs');
-  const file = fs.readFileSync(fileName);
-  const audioBytes = file.toString('base64');
+  const audioBytes = defaultAudio(); // mock
   let transcription; 
   let response;
-  speakerData.getTTS(audioBytes)
+  speakerData.getSTT(audioBytes)
     .then( TTS_result => {
       transcription = TTS_result;
       speakerData.getNLU(TTS_result)
       .then (NLU_result => {
         response = NLU_result;
+        // speakerData.getTTS(response);
+        speakerData.getTTSPolly(response);
         res.status(200).send({
           transcription: transcription,
           response: response
         })
       }); 
     })
+}
+
+function defaultAudio() {
+  const fileName = 'resources/eai_tv_liga_ai_kevin.wav';
+  const fs = require('fs');
+  const file = fs.readFileSync(fileName);
+  const audioBytes = file.toString('base64');
+  return audioBytes;
 }

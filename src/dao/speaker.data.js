@@ -1,17 +1,18 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 
-function getTTS(audioBytes) {
+const newAgent = require('../../resources/newagent-16dd6-2707dae8696b.json');
+const config = {
+  credentials: {
+    private_key: newAgent.private_key,
+    client_email: newAgent.client_email
+  }
+}
+
+function getSTT(audioBytes) {
   return new Promise( (resolve, reject) => {
     const speech = require('@google-cloud/speech'); 
-    const TTS_config = require('../../resources/Idoso-Sarado-590a3ef36dc2.json');
-    const session_config = {
-      credentials: {
-        private_key: TTS_config.private_key,
-        client_email: TTS_config.client_email
-      }
-    }
-    const client = new speech.SpeechClient(session_config);  // Creates a client
+    const client = new speech.SpeechClient(config);  // Creates a client
     const audio = {
       content: audioBytes,
     };
@@ -39,22 +40,15 @@ function getTTS(audioBytes) {
       });
   })
 }
-exports.getTTS = getTTS;
+exports.getSTT = getSTT;
 
 function getNLU(speech) {
   return new Promise( async (resolve, reject) => {
     const dialogflow = require('dialogflow');
-    const uuid = require('uuid')
-    const dialog_flow_config = require('../../resources/newagent-16dd6-2707dae8696b.json');
-    const config = {
-      credentials: {
-        private_key: dialog_flow_config.private_key,
-        client_email: dialog_flow_config.client_email
-      }
-    }
+    const uuid = require('uuid');
     const sessionClient = new dialogflow.SessionsClient(config)
     const sessionId = uuid.v4();
-    const sessionPath = sessionClient.sessionPath(dialog_flow_config.project_id, sessionId);
+    const sessionPath = sessionClient.sessionPath(newAgent.project_id, sessionId);
     const request = {
       session: sessionPath,
       queryInput: {
@@ -77,3 +71,54 @@ function getNLU(speech) {
   })
 }
 exports.getNLU = getNLU;
+
+function getTTS(text) {
+  return new Promise ( async (resolve, reject) => {
+    const textToSpeech = require('@google-cloud/text-to-speech');
+    const fs = require('fs');
+    const util = require('util');
+    const client = new textToSpeech.TextToSpeechClient(config);
+    const request = {
+      input: {text: text},
+      voice: {languageCode: 'pt-BR', ssmlGender: 'NEUTRAL'},
+      audioConfig: {audioEncoding: 'LINEAR16'},
+    };
+    const [response] = await client.synthesizeSpeech(request);
+    const writeFile = util.promisify(fs.writeFile);
+    await writeFile('output.wav', response.audioContent, 'binary');
+    console.log('Audio content written to file: output.mp3');
+  })
+}
+exports.getTTS = getTTS;
+
+function getTTSPolly(text) {
+  const AWS = require('aws-sdk')
+  const Fs = require('fs')
+  AWS.config.loadFromPath('resources/amazon_credentials.json');
+  const Polly = new AWS.Polly({
+    signatureVersion: 'v4',
+    region: 'us-east-1'
+  })
+
+  let params = {
+    'Text': 'Hi, my name is @anaptfox.',
+    'OutputFormat': 'mp3',
+    'VoiceId': 'Kimberly'
+  }
+  Polly.synthesizeSpeech(params, (err, data) => {
+    if (err) {
+      console.log(err.code)
+    } else if (data) {
+      if (data.AudioStream instanceof Buffer) {
+        Fs.writeFile("speech.mp3", data.AudioStream, function(err) {
+          if (err) {
+            return console.log(err)
+          }
+          console.log("The file was saved!")
+        })
+      }
+    }
+  })
+}
+exports.getTTSPolly = getTTSPolly;
+
