@@ -42,6 +42,36 @@ function getSTT(audioBytes) {
 }
 exports.getSTT = getSTT;
 
+function getSTTWatson(audioBytes) {
+  return new Promise( (resolve, reject) => {
+    const SpeechToTextV1 = require('watson-developer-cloud/speech-to-text/v1');
+    const credentials_watson = require('../../resources/watson_credentials.json');
+    const fs = require('fs');
+    const speechToText = new SpeechToTextV1({
+      iam_apikey: credentials_watson.iam_apikey,
+      url: credentials_watson.url
+    });
+    const fileName = 'resources/eai_tv_liga_ai_kevin.wav';
+    const file = fs.readFileSync(fileName);
+    const params = {
+      audio: file,
+      content_type: 'audio/wav',
+      word_alternatives_threshold: 0.9,
+      model: 'pt-BR_BroadbandModel'
+    };
+    
+    speechToText.recognize(params).then(speechRecognitionResults => {
+      console.log(JSON.stringify(speechRecognitionResults, null, 2));
+      resolve(speechRecognitionResults.results[0].alternatives[0].transcript);
+    })
+    .catch(err => {
+      console.log('error:', err);
+    });;
+  });
+  
+}
+exports.getSTTWatson = getSTTWatson;
+
 function getNLU(speech) {
   return new Promise( async (resolve, reject) => {
     const dialogflow = require('dialogflow');
@@ -72,53 +102,53 @@ function getNLU(speech) {
 }
 exports.getNLU = getNLU;
 
-function getTTS(text) {
+function getTTSGoogle(text) {
   return new Promise ( async (resolve, reject) => {
     const textToSpeech = require('@google-cloud/text-to-speech');
-    const fs = require('fs');
     const util = require('util');
     const client = new textToSpeech.TextToSpeechClient(config);
     const request = {
       input: {text: text},
       voice: {languageCode: 'pt-BR', ssmlGender: 'NEUTRAL'},
-      audioConfig: {audioEncoding: 'LINEAR16'},
+      audioConfig: {audioEncoding: 'MP3'},
     };
     const [response] = await client.synthesizeSpeech(request);
-    const writeFile = util.promisify(fs.writeFile);
-    await writeFile('output.wav', response.audioContent, 'binary');
-    console.log('Audio content written to file: output.mp3');
+    writeAudio(response.audioContent);
   })
 }
-exports.getTTS = getTTS;
+exports.getTTSGoogle = getTTSGoogle;
 
 function getTTSPolly(text) {
   const AWS = require('aws-sdk')
-  const Fs = require('fs')
-  AWS.config.loadFromPath('resources/amazon_credentials.json');
+  AWS.config.loadFromPath('resources/amazon_credentials.2.json');
   const Polly = new AWS.Polly({
     signatureVersion: 'v4',
     region: 'us-east-1'
   })
 
   let params = {
-    'Text': 'Hi, my name is @anaptfox.',
+    'Text': text,
     'OutputFormat': 'mp3',
-    'VoiceId': 'Kimberly'
+    'VoiceId': 'Ricardo'
   }
   Polly.synthesizeSpeech(params, (err, data) => {
     if (err) {
       console.log(err.code)
     } else if (data) {
       if (data.AudioStream instanceof Buffer) {
-        Fs.writeFile("speech.mp3", data.AudioStream, function(err) {
-          if (err) {
-            return console.log(err)
-          }
-          console.log("The file was saved!")
-        })
+        writeAudio(data.AudioStream);
       }
     }
   })
 }
 exports.getTTSPolly = getTTSPolly;
 
+function writeAudio(audio) {
+  const fs = require('fs');
+  fs.writeFile("speech.mp3", audio, function(err) {
+    if (err) {
+      return console.log(err)
+    }
+    console.log("The file was saved!")
+  })
+}

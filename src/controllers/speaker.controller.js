@@ -5,14 +5,15 @@ exports.get = async function(req, res, next) {
   const audioBytes = defaultAudio(); // mock
   let transcription; 
   let response;
-  speakerData.getSTT(audioBytes)
+  // speakerData.getSTT(audioBytes)
+  speakerData.getSTTWatson(audioBytes)
     .then( TTS_result => {
       transcription = TTS_result;
-      speakerData.getNLU(TTS_result)
+      speakerData.getNLU("tv")
       .then (NLU_result => {
         response = NLU_result;
-        // speakerData.getTTS(response);
-        speakerData.getTTSPolly(response);
+        speakerData.getTTSGoogle(response);
+        //speakerData.getTTSPolly(response);
         res.status(200).send({
           transcription: transcription,
           response: response
