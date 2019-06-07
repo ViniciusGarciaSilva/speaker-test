@@ -103,3 +103,9 @@ Resposta:
             ]
 }
 ```
+
+Com a entrada e saída, respectivamente: 
+```
+resources/input.wav
+resources/output.wav
+```
