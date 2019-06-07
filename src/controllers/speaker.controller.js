@@ -1,6 +1,6 @@
-const speakerNLU = require('../dao/speaker.nlu');
-const speakerTTS = require('../dao/speaker.tts');
-const speakerSTT = require('../dao/speaker.stt');
+const speakerNLU = require('../data/speaker.nlu');
+const speakerTTS = require('../data/speaker.tts');
+const speakerSTT = require('../data/speaker.stt');
 const fs = require('fs');
 
 // Recebe um arquivo de audio em base 64, os nomes dos stt, tts e nlu
@@ -70,7 +70,7 @@ function nlu_execute(name, text) {
 }
 
 function defaultAudio(base) {  
-  const fileName = 'resources/teste1.wav';
+  const fileName = 'resources/input.wav';
   const file = fs.readFileSync(fileName);
   const audioBytes = file.toString('base64');
   return base ? audioBytes : file;
