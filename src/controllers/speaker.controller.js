@@ -40,6 +40,7 @@ function stt_execute(name, audio) {
         const google_transcription = await speakerSTT.getSTTGoogle(defaultAudio(true));
         resolve(google_transcription);
       }
+      reject("STT not recognized!")
     } catch (error) {
       reject(error);
     }
@@ -63,6 +64,7 @@ function tts_execute(name, text) {
         const google_audio = await speakerTTS.getTTSGoogle(text);
         resolve(google_audio);
       }
+      reject("TTS not recognized!")
     } catch (error) {
       reject(error);
     }
@@ -82,6 +84,7 @@ function nlu_execute(name, text) {
         const dialog_flow_response = await speakerNLU.getNLUGoogle(text);
         resolve(dialog_flow_response);
       }
+      reject("NLU not recognized!")
     } catch (error) {
       reject(error);
     }
