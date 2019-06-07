@@ -25,6 +25,7 @@
     "cors": "^2.8.5",
     "dialogflow": "^0.9.1",
     "express": "^4.17.0",
+    "performance-now": "^2.1.0",
     "watson-developer-cloud": "^4.0.1"
   }
 }
