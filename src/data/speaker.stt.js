@@ -1,7 +1,8 @@
 const fs = require('fs');
 const google = require('@google-cloud/speech'); 
 const watson = require('watson-developer-cloud/speech-to-text/v1');
-    
+const newAgent = require('../../resources/newagent-16dd6-2707dae8696b.json');
+
 // Google speech-to-text
 function getSTTGoogle(audioBytes) {
   return new Promise( (resolve, reject) => {
