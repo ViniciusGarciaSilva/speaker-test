@@ -48,7 +48,7 @@ function getSTTGoogle(audioBytes) {
 exports.getSTTGoogle = getSTTGoogle;
 
 // IBM Watson speech-to-text
-function getSTTWatson(audioBytes) {
+function getSTTWatson(audio) {
   return new Promise( (resolve, reject) => {
     
     // configure client
@@ -63,7 +63,7 @@ function getSTTWatson(audioBytes) {
 
     // set request parameters
     const params = {
-      audio: audioBytes,
+      audio: audio,
       content_type: 'audio/wav',
       word_alternatives_threshold: 0.9,
       model: 'pt-BR_BroadbandModel'
@@ -76,7 +76,7 @@ function getSTTWatson(audioBytes) {
         resolve(speechRecognitionResults.results[0].alternatives[0].transcript);
       })
       .catch(err => {
-        console.log('Speech-To-Text ERROR: ', err);
+        reject(err);
       });
   });
 }
