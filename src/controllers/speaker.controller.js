@@ -1,25 +1,34 @@
 const speakerNLU = require('../data/speaker.nlu');
 const speakerTTS = require('../data/speaker.tts');
 const speakerSTT = require('../data/speaker.stt');
-// for tests: var now = require("performance-now")
+var now = require("performance-now")
 const fs = require('fs');
 
 // Recebe um arquivo de audio em base 64, os nomes dos stt, tts e nlu
 exports.post = async function (req, res, next) {
   console.log(req.body);
   try {
+    let t0 = now();
     const transcription = await stt_execute(req.body.stt, req.body.audio);
+    let t1 = now();
+    logTime("SST_" + req.body.stt, (t1 - t0))
+
+    t0 = now();
     const response = await nlu_execute(req.body.nlu, transcription);
-    const audio = await tts_execute(req.body.tts, response);
     t1 = now();
-    logTime("TTS_" + req.body.tts, (t1 - t0));
+    logTime("NLU_" + req.body.nlu, (t1 - t0))
+
+    t0 = now();
+    const audio = await tts_execute(req.body.tts, transcription); // response
+    t1 = now();
+    logTime("TTS_" + req.body.tts, (t1 - t0))
 
     writeAudio(audio);
     res.status(200).send({
       audio: audio
     });
   } catch (error) {
-    console.log(error);
+    console.log(error, "\nProcesso encerrado");
     res.status(400).send({
       Erro: `${error}`
     });
@@ -84,6 +93,10 @@ function nlu_execute(name, text) {
         const dialog_flow_response = await speakerNLU.getNLUGoogle(text);
         resolve(dialog_flow_response);
       }
+      if (name == 'rasa') {
+        const rasa_response = await speakerNLU.getNLURasa(text);
+        resolve(rasa_response);
+      }
       reject("NLU not recognized!")
     } catch (error) {
       reject(error);
@@ -92,7 +105,7 @@ function nlu_execute(name, text) {
 }
 
 function defaultAudio(base) {
-  const fileName = 'resources/input.wav';
+  const fileName = 'resources/input_rogerio_ceni.wav';
   const file = fs.readFileSync(fileName);
   const audioBytes = file.toString('base64');
   return base ? audioBytes : file;
@@ -114,9 +127,9 @@ function writeAudio(audio) {
 // let t1 = now();
 // logTime("TIPO_" + req.body.TIPO, (t1 - t0))
 //
-function logTime(name, time) {
+async function logTime(name, time) {
   console.log('Call to ' + name + ' took ' + time + ' milliseconds.')
-  fs.appendFile('logs/' + name + '.txt', time + '\r\n', function (err) {
+  await fs.appendFile('logs/' + name + '.txt', time + '\r\n', function (err) {
     if (err) {
       return console.log(err)
     }
