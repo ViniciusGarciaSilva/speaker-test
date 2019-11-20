@@ -9,13 +9,7 @@ exports.sendMessage = async function(req, res, next) {
   console.log('Sending message: ', message)
   try {
     const response = await nlu_execute(req.body.nlu, message);
-    t1 = now();
-    logTime(req.body.audio + '_NLU_' + req.body.nlu, (t1 - t0))
-
-    t0 = now();
     const audio = await tts_execute(req.body.tts, response); // response
-    t1 = now();
-    logTime(req.body.audio + '_TTS_' + req.body.tts, (t1 - t0))
 
     writeAudio(audio);
     res.status(200).send({
@@ -33,20 +27,9 @@ exports.sendMessage = async function(req, res, next) {
 exports.post = async function (req, res, next) {
   console.log(req.body);
   try {
-    let t0 = now();
     const transcription = await stt_execute(req.body.stt, req.body.audio);
-    let t1 = now();
-    logTime(req.body.audio + '_SST_' + req.body.stt, (t1 - t0)) // TIRAR A PARTE DO AUDIOOOOOOOOOOOOOOOOOOOOOO
-
-    t0 = now();
     const response = await nlu_execute(req.body.nlu, transcription);
-    t1 = now();
-    logTime(req.body.audio + '_NLU_' + req.body.nlu, (t1 - t0))
-
-    t0 = now();
     const audio = await tts_execute(req.body.tts, response); // response
-    t1 = now();
-    logTime(req.body.audio + '_TTS_' + req.body.tts, (t1 - t0))
 
     writeAudio(audio);
     res.status(200).send({
