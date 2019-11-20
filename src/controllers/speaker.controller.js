@@ -130,7 +130,8 @@ function nlu_execute(name, text) {
 }
 
 function defaultAudio(base, audio) {
-  const fileName = 'resources/input_'+audio+'.wav';
+  // const fileName = 'resources/input_'+audio+'.wav'; // para testes somente
+  const fileName = 'resources/input.wav';
   const file = fs.readFileSync(fileName);
   const audioBytes = file.toString('base64');
   return base ? audioBytes : file;
