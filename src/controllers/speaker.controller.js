@@ -4,6 +4,31 @@ const speakerSTT = require('../data/speaker.stt');
 var now = require("performance-now")
 const fs = require('fs');
 
+exports.sendMessage = async function(req, res, next) {
+  const message = req.body.message;
+  console.log('Sending message: ', message)
+  try {
+    const response = await nlu_execute(req.body.nlu, message);
+    t1 = now();
+    logTime(req.body.audio + '_NLU_' + req.body.nlu, (t1 - t0))
+
+    t0 = now();
+    const audio = await tts_execute(req.body.tts, response); // response
+    t1 = now();
+    logTime(req.body.audio + '_TTS_' + req.body.tts, (t1 - t0))
+
+    writeAudio(audio);
+    res.status(200).send({
+      audio: audio
+    });
+  } catch (error) {
+    console.log(error, "\nProcesso encerrado");
+    res.status(400).send({
+      Erro: `${error}`
+    });
+  }
+}
+
 // Recebe um arquivo de audio em base 64, os nomes dos stt, tts e nlu
 exports.post = async function (req, res, next) {
   console.log(req.body);
@@ -11,17 +36,17 @@ exports.post = async function (req, res, next) {
     let t0 = now();
     const transcription = await stt_execute(req.body.stt, req.body.audio);
     let t1 = now();
-    logTime("SST_" + req.body.stt, (t1 - t0))
+    logTime(req.body.audio + '_SST_' + req.body.stt, (t1 - t0)) // TIRAR A PARTE DO AUDIOOOOOOOOOOOOOOOOOOOOOO
 
     t0 = now();
     const response = await nlu_execute(req.body.nlu, transcription);
     t1 = now();
-    logTime("NLU_" + req.body.nlu, (t1 - t0))
+    logTime(req.body.audio + '_NLU_' + req.body.nlu, (t1 - t0))
 
     t0 = now();
-    const audio = await tts_execute(req.body.tts, transcription); // response
+    const audio = await tts_execute(req.body.tts, response); // response
     t1 = now();
-    logTime("TTS_" + req.body.tts, (t1 - t0))
+    logTime(req.body.audio + '_TTS_' + req.body.tts, (t1 - t0))
 
     writeAudio(audio);
     res.status(200).send({
@@ -42,11 +67,11 @@ function stt_execute(name, audio) {
         reject("No STT defined!");
       }
       if (name == 'watson') {
-        const watson_transcription = await speakerSTT.getSTTWatson(defaultAudio());
+        const watson_transcription = await speakerSTT.getSTTWatson(defaultAudio(false, audio));
         resolve(watson_transcription);
       }
       if (name == 'google') {
-        const google_transcription = await speakerSTT.getSTTGoogle(defaultAudio(true));
+        const google_transcription = await speakerSTT.getSTTGoogle(defaultAudio(true, audio));
         resolve(google_transcription);
       }
       reject("STT not recognized!")
@@ -104,8 +129,8 @@ function nlu_execute(name, text) {
   })
 }
 
-function defaultAudio(base) {
-  const fileName = 'resources/input_rogerio_ceni.wav';
+function defaultAudio(base, audio) {
+  const fileName = 'resources/input_'+audio+'.wav';
   const file = fs.readFileSync(fileName);
   const audioBytes = file.toString('base64');
   return base ? audioBytes : file;
