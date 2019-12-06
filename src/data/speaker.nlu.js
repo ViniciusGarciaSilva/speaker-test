@@ -3,6 +3,8 @@ const uuid = require('uuid');
 const newAgent = require('../../resources/newagent-16dd6-2707dae8696b.json');
 const axios = require('axios')
 
+let contexts = [] 
+
 // Rasa NLU
 function getNLURasa(text) {
   return new Promise( async (resolve, reject) => {
@@ -57,6 +59,8 @@ function getNLUGoogle(text) {
     // set session
     const sessionPath = client.sessionPath(projectId, sessionId);
     
+    console.log('setando context: ', contexts)
+
     // set request params
     const params = {
       session: sessionPath,
@@ -66,7 +70,12 @@ function getNLUGoogle(text) {
           languageCode: 'pt-BR',
         },
       },
+      queryParams: {
+        contexts: contexts
+      }
     };
+
+    console.log('params: ', params)
 
     // send request
     try {
@@ -76,6 +85,10 @@ function getNLUGoogle(text) {
       console.log(`NLU Response: ${result.fulfillmentText}`);
       if (result.intent) {
         console.log(`NLU Intent: ${result.intent.displayName}`);
+        console.log(result)
+        console.log('Contexts: ', result.outputContexts)
+        contexts = result.outputContexts
+        // result.outputContexts.forEach(outputContext => context.push(outputContext))
         resolve(result.fulfillmentText);
       } else {
         reject(`NLU: No intent matched.`);

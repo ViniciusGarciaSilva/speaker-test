@@ -9,6 +9,7 @@ exports.sendMessage = async function(req, res, next) {
   console.log('Sending message: ', message)
   try {
     const response = await nlu_execute(req.body.nlu, message);
+    console.log('response: ', response)
     const audio = await tts_execute(req.body.tts, response); // response
 
     writeAudio(audio);
