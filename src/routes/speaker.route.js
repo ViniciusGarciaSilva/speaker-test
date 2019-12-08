@@ -9,4 +9,5 @@ var router = express_1.default.Router();
 var speakerController = require('../controllers/speaker.controller');
 router.post('/', speakerController.post);
 router.post('/message', speakerController.sendMessage)
+router.post('/conversation', speakerController.conversate)
 module.exports = router;
