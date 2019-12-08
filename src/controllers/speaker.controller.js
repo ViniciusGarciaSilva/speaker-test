@@ -4,22 +4,42 @@ const speakerSTT = require('../data/speaker.stt');
 var now = require("performance-now")
 const fs = require('fs');
 
-exports.sendMessage = async function(req, res, next) {
+exports.conversate = async function(req, res, next) {
   const message = req.body.message;
-  console.log('Sending message: ', message)
+  console.log('Conversation: ', message)
   try {
     const response = await nlu_execute(req.body.nlu, message);
     console.log('response: ', response)
     const audio = await tts_execute(req.body.tts, response); // response
-
     writeAudio(audio);
     res.status(200).send({
-      audio: audio
+      status: 'Success!',
+      response: response
     });
   } catch (error) {
     console.log(error, "\nProcesso encerrado");
     res.status(400).send({
-      Erro: `${error}`
+      status: error,
+      Response: response
+    });
+  }
+}
+
+exports.sendMessage = async function(req, res, next) {
+  const message = req.body.message;
+  console.log('Sending message: ', message)
+  try {
+    const audio = await tts_execute(req.body.tts, message);
+    writeAudio(audio);
+    res.status(200).send({
+      status: 'Success!',
+      message: message
+    });
+  } catch (error) {
+    console.log(error, "\nProcesso encerrado");
+    res.status(400).send({
+      status: error,
+      message: message
     });
   }
 }
