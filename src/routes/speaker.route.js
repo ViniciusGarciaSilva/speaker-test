@@ -10,4 +10,5 @@ var speakerController = require('../controllers/speaker.controller');
 router.post('/', speakerController.post);
 router.post('/message', speakerController.sendMessage)
 router.post('/conversation', speakerController.conversate)
+router.post('/clear', speakerController.clear)
 module.exports = router;

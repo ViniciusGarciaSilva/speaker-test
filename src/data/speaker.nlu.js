@@ -38,9 +38,11 @@ function getNLURasa(text) {
 exports.getNLURasa = getNLURasa;
 
 // Google Dialog Flow NLU
-function getNLUGoogle(text) {
+function getNLUGoogle(text, reset) {
   return new Promise( async (resolve, reject) => {
-    
+    if (reset) {
+      contexts = []
+    } 
     // config client
     const client_config = {
       credentials: {
@@ -59,7 +61,7 @@ function getNLUGoogle(text) {
     // set session
     const sessionPath = client.sessionPath(projectId, sessionId);
     
-    console.log('setando context: ', contexts)
+    // console.log('setando context: ', contexts)
 
     // set request params
     const params = {
@@ -71,7 +73,7 @@ function getNLUGoogle(text) {
         },
       },
       queryParams: {
-        contexts: contexts
+        contexts: contexts,
       }
     };
 
@@ -85,8 +87,8 @@ function getNLUGoogle(text) {
       console.log(`NLU Response: ${result.fulfillmentText}`);
       if (result.intent) {
         console.log(`NLU Intent: ${result.intent.displayName}`);
-        console.log(result)
-        console.log('Contexts: ', result.outputContexts)
+        // console.log(result)
+        // console.log('Contexts: ', result.outputContexts)
         contexts = result.outputContexts
         // result.outputContexts.forEach(outputContext => context.push(outputContext))
         resolve(result.fulfillmentText);
@@ -101,3 +103,33 @@ function getNLUGoogle(text) {
   })
 }
 exports.getNLUGoogle = getNLUGoogle;
+
+function clear() {
+  return new Promise( async (resolve, reject) => { 
+    // config client
+    const client_config = {
+      credentials: {
+        private_key: newAgent.private_key,
+        client_email: newAgent.client_email
+      }
+    }
+    // instantiate client
+    const client = new dialogflow.SessionsClient(client_config)
+    // config session
+    const projectId = newAgent.project_id;
+    const sessionId = uuid.v4();
+    // set session
+    const sessionPath = client.sessionPath(projectId, sessionId);
+    // send request
+    try {
+      console.log('antes do delete', sessionId)
+      const AuthStr = 'Bearer' + newAgent.private_key
+      const response = await axios.delete(`https://api.dialogflow.com/v1/contexts?sessionId=${sessionId}`, { headers: { Authorization: AuthStr } })
+      console.log('depois do delete', response)
+      resolve(response);
+    } 
+    catch (error) {
+      reject(error.details);
+  }})
+}
+exports.clear = clear

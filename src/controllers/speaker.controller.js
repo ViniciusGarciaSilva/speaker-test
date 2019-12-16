@@ -4,11 +4,19 @@ const speakerSTT = require('../data/speaker.stt');
 var now = require("performance-now")
 const fs = require('fs');
 
+exports.clear = async function(req, res, next) {
+  const response = await speakerNLU.clear()
+  res.status(200).send({
+    status: 'Success!',
+    response: response
+  });
+}
+
 exports.conversate = async function(req, res, next) {
   const message = req.body.message;
   console.log('Conversation: ', message)
   try {
-    const response = await nlu_execute(req.body.nlu, message);
+    const response = await nlu_execute(req.body.nlu, message, req.body.reset ? req.body.reset : false);
     console.log('response: ', response)
     const audio = await tts_execute(req.body.tts, response); // response
     writeAudio(audio);
@@ -29,7 +37,7 @@ exports.sendMessage = async function(req, res, next) {
   const message = req.body.message;
   console.log('Sending message: ', message)
   try {
-    const audio = await tts_execute(req.body.tts, message);
+    const audio = await tts_execute(req.body.tts, message, req.body.reset ? req.body.reset : false);
     writeAudio(audio);
     res.status(200).send({
       status: 'Success!',
@@ -49,7 +57,7 @@ exports.post = async function (req, res, next) {
   console.log(req.body);
   try {
     const transcription = await stt_execute(req.body.stt, req.body.audio);
-    const response = await nlu_execute(req.body.nlu, transcription);
+    const response = await nlu_execute(req.body.nlu, transcription, req.body.reset ? req.body.reset : false);
     const audio = await tts_execute(req.body.tts, response); // response
 
     writeAudio(audio);
@@ -109,7 +117,7 @@ function tts_execute(name, text) {
   })
 }
 
-function nlu_execute(name, text) {
+function nlu_execute(name, text, reset) {
   return new Promise(async (resolve, reject) => {
     try {
       if (!name) {
@@ -119,7 +127,7 @@ function nlu_execute(name, text) {
         reject("No text provided for NLU!");
       }
       if (name == 'dialog_flow') {
-        const dialog_flow_response = await speakerNLU.getNLUGoogle(text);
+        const dialog_flow_response = await speakerNLU.getNLUGoogle(text, reset);
         resolve(dialog_flow_response);
       }
       if (name == 'rasa') {
